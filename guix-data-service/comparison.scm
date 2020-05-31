@@ -738,19 +738,14 @@ WHERE
 ORDER BY coalesce(base_lint_warnings.name, target_lint_warnings.name) ASC, base_lint_warnings.version, target_lint_warnings.version, change"))
 
   (let ((result
-         (exec-query conn query
-                     (list base-guix-revision-id
-                           target-guix-revision-id
-                           locale))))
-    (if (null? result)
-        (exec-query conn query
-                    (list base-guix-revision-id
-                          target-guix-revision-id
-                          "en_US.utf8"))
-        (exec-query conn query
-                    (list base-guix-revision-id
-                          target-guix-revision-id
-                          locale)))))
+         (lambda (locale-value)
+           (exec-query conn query
+                       (list base-guix-revision-id
+                             target-guix-revision-id
+                             locale-value)))))
+    (if (null? (result locale))
+        (result "en_US.utf8")
+        (result locale))))
 
 (define (channel-news-differences-data conn
                                        base-guix-revision-id

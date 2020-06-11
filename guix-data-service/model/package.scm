@@ -131,6 +131,35 @@ INNER JOIN package_metadata
   ON packages.package_metadata_id = package_metadata.id
 LEFT OUTER JOIN locations
   ON package_metadata.location_id = locations.id
+<<<<<<< Updated upstream
+=======
+INNER JOIN (
+  SELECT DISTINCT ON (package_synopsis_sets.id) package_synopsis_sets.id,
+           package_synopsis.synopsis
+  FROM package_synopsis_sets
+  INNER JOIN package_synopsis
+    ON package_synopsis.id = ANY (package_synopsis_sets.synopsis_ids)
+  ORDER BY package_synopsis_sets.id,
+           CASE WHEN package_synopsis.locale = $2 THEN 2
+                WHEN package_synopsis.locale = 'en_US.utf8' THEN 1
+                ELSE 0
+           END DESC
+) AS translated_package_synopsis
+    ON package_metadata.package_synopsis_set_id = translated_package_synopsis.id
+INNER JOIN (
+  SELECT DISTINCT ON (package_description_sets.id) package_description_sets.id,
+           package_descriptions.description
+  FROM package_description_sets
+  INNER JOIN package_descriptions
+    ON package_descriptions.id = ANY (package_description_sets.description_ids)
+  ORDER BY package_description_sets.id,
+           CASE WHEN package_descriptions.locale = $2 THEN 2
+                WHEN package_descriptions.locale = 'en_US.utf8' THEN 1
+                ELSE 0
+           END DESC
+) AS translated_package_descriptions
+    ON package_metadata.package_description_set_id = translated_package_descriptions.id
+>>>>>>> Stashed changes
 WHERE packages.id IN (
  SELECT package_derivations.package_id
  FROM package_derivations

@@ -31,7 +31,7 @@
   #:use-module (guix-data-service model utils)
   #:export (select-package-metadata-by-revision-name-and-version
             inferior-packages->package-metadata-ids
-            
+
             package-description-and-synopsis-locale-options-guix-revision))
 (define locales
   '("cs_CZ.utf8"
@@ -199,7 +199,8 @@ WHERE packages.id IN (
                  " RETURNING id"
                  ";"))
 
-(define (inferior-packages->translated-package-descriptions-and-synopsis inferior-package-id inferior)
+(define (inferior-packages->translated-package-descriptions-and-synopsis inferior
+                                                                         inferior-package-id)
 
   (define (translate inferior-package-id)
     `(let* ((package (hashv-ref %package-table ,inferior-package-id))
@@ -355,9 +356,9 @@ WHERE packages.id IN (
         (insert-package-description-set conn package-description-ids))))))
 
 (define (inferior-packages->package-metadata-ids conn
+                                                 inferior
                                                  packages
-                                                 license-set-ids
-                                                 inferior)
+                                                 license-set-ids)
   (define package-metadata
     (map (lambda (package license-set-id)
            (list (non-empty-string-or-false
@@ -369,11 +370,11 @@ WHERE packages.id IN (
                  (package-description-data->package-description-set-id
                   conn
                   (car (inferior-packages->translated-package-descriptions-and-synopsis
-                        (inferior-package-id package) inferior)))
+                        inferior (inferior-package-id package))))
                  (package-synopsis-data->package-synopsis-set-id
                   conn
                   (cdr (inferior-packages->translated-package-descriptions-and-synopsis
-                        (inferior-package-id package) inferior)))))
+                        inferior (inferior-package-id package))))))
          packages
          license-set-ids))
 

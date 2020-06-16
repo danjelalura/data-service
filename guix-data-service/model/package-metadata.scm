@@ -398,20 +398,21 @@ WHERE packages.id IN (
                                                  license-set-ids)
   (define package-metadata
     (map (lambda (package license-set-id)
-           (list (non-empty-string-or-false
-                  (inferior-package-home-page package))
-                 (location->location-id
-                  conn
-                  (inferior-package-location package))
-                 license-set-id
-                 (package-description-data->package-description-set-id
-                  conn
-                  (car (inferior-packages->translated-package-descriptions-and-synopsis
-                        inferior (inferior-package-id package))))
-                 (package-synopsis-data->package-synopsis-set-id
-                  conn
-                  (cdr (inferior-packages->translated-package-descriptions-and-synopsis
-                        inferior (inferior-package-id package))))))
+           (let ((translated-package-descriptions-and-synopsis
+                  (inferior-packages->translated-package-descriptions-and-synopsis
+                   inferior (inferior-package-id package))))
+               (list (non-empty-string-or-false
+                      (inferior-package-home-page package))
+                     (location->location-id
+                      conn
+                      (inferior-package-location package))
+                     license-set-id
+                     (package-description-data->package-description-set-id
+                      conn
+                      (car translated-package-descriptions-and-synopsis))
+                     (package-synopsis-data->package-synopsis-set-id
+                      conn
+                      (cdr translated-package-descriptions-and-synopsis)))))
          packages
          license-set-ids))
 

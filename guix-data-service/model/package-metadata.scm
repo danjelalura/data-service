@@ -27,10 +27,12 @@
   #:use-module (guix packages)
   #:use-module (guix i18n)
   #:use-module (guix inferior)
+  #:use-module (guix-data-service utils)
   #:use-module (guix-data-service model location)
   #:use-module (guix-data-service model utils)
   #:export (select-package-metadata-by-revision-name-and-version
             inferior-packages->package-metadata-ids
+            inferior-packages->translated-package-descriptions-and-synopsis
 
             package-description-and-synopsis-locale-options-guix-revision))
 (define locales
@@ -202,10 +204,11 @@ WHERE packages.id IN (
                  ";"))
 
 (define (inferior-packages->translated-package-descriptions-and-synopsis inferior
-                                                                         inferior-package-id)
+                                                                         inferior-package)
 
   (define (translate inferior-package)
-    `(let* ((package (hashv-ref %package-table ,inferior-package-id))
+    `(let* ((inferior-package-id (inferior-package-id inferior-package))
+            (package (hashv-ref %package-table ,inferior-package-id))
             (source-locale "en_US.utf8")
             (source-synopsis
               (begin
@@ -260,6 +263,8 @@ WHERE packages.id IN (
                synopsis-by-locale))))
 
   (inferior-eval (translate inferior-package-id) inferior))
+
+(prevent-inlining-for-tests inferior-packages->translated-package-descriptions-and-synopsis)
 
 (define (package-synopsis-data->package-synopsis-ids
          conn synopsis-by-locale)
@@ -365,7 +370,7 @@ WHERE packages.id IN (
     (map (lambda (package license-set-id)
            (let ((translated-package-descriptions-and-synopsis
                   (inferior-packages->translated-package-descriptions-and-synopsis
-                   inferior (inferior-package-id package))))
+                   inferior package)))
                (list (non-empty-string-or-false
                       (inferior-package-home-page package))
                      (location->location-id
